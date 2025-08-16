@@ -56,24 +56,34 @@ def show_structure(pdb_data, width=600, height=400):
     viewer.zoomTo()
     return viewer
 
-# Mostrar estructura (ejemplo inicial o secuencia)
-def render_structure(seq):
-    pdb_data = generate_fake_pdb(seq)
-    viewer = show_structure(pdb_data)
-    viewer_html = viewer.js()
-    st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
+# Fallback para mostrar en Streamlit Cloud
+def display_in_streamlit(viewer, width=600, height=400):
+    try:
+        # Intentar mostrar directamente
+        viewer.show()
+    except:
+        # Si falla (como en Streamlit Cloud), usar html embebido
+        st.components.v1.html(viewer.render().data, width=width, height=height, scrolling=False)
+
+# Si se presiona Run y hay secuencia
+if run and sequence:
+    v = show_structure(generate_fake_pdb(sequence))
+    display_in_streamlit(v)
     st.download_button(
         label="Descargar PDB",
-        data=pdb_data,
+        data=generate_fake_pdb(sequence),
         file_name="estructura.pdb",
         mime="chemical/x-pdb"
     )
 
-# Si se presiona Run y hay secuencia
-if run and sequence:
-    render_structure(sequence)
-
 # Ejemplo automático siempre visible
 if not sequence and not run:
     st.subheader("Ejemplo de visualización con secuencia ACDEFGH")
-    render_structure("ACDEFGH")
+    v = show_structure(generate_fake_pdb("ACDEFGH"))
+    display_in_streamlit(v)
+    st.download_button(
+        label="Descargar ejemplo PDB",
+        data=generate_fake_pdb("ACDEFGH"),
+        file_name="ejemplo.pdb",
+        mime="chemical/x-pdb"
+    )
