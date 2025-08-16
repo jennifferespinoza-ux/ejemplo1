@@ -22,7 +22,8 @@ st.sidebar.title("🧬 Instrucciones")
 st.sidebar.write("1. Si tienes secuencia en 3 letras, conviértela primero.\n"
                  "2. Ingresa la secuencia en letras simples (A, R, N, etc.).\n"
                  "3. Haz clic en **Run** para ver la estructura.\n"
-                 "4. Usa **Nueva estructura** para generar otra visualización.")
+                 "4. Usa **Nueva estructura** para generar otra visualización.\n"
+                 "5. Descarga el archivo en formato PDB o TXT según prefieras.")
 
 st.title("Generador de estructuras 3D de proteínas")
 
@@ -36,6 +37,11 @@ if st.button("Convertir a 1 letra"):
 # Entrada de secuencia
 st.subheader("Generación de estructura 3D")
 seq_input = st.text_area("Introduce la secuencia de aminoácidos en formato de 1 letra")
+
+# Ejemplo de secuencia
+if st.checkbox("Usar ejemplo de secuencia (proteína corta)"):
+    seq_input = "ACDEFGHIKLMNPQRSTVWY"  # un ejemplo con los 20 aminoácidos estándar
+    st.info(f"Ejemplo cargado: {seq_input}")
 
 # Botones
 col1, col2 = st.columns(2)
@@ -61,6 +67,9 @@ if run or new_structure:
         view.zoomTo()
         view_html = view._make_html()
         st.components.v1.html(view_html, height=400)
+        
+        # Botones de descarga
         st.download_button("Descargar PDB", pdb_data, file_name="estructura.pdb")
+        st.download_button("Descargar Secuencia TXT", seq_input, file_name="secuencia.txt")
     else:
         st.warning("⚠️ Ingresa una secuencia primero.")
