@@ -48,14 +48,19 @@ def generate_fake_pdb(seq):
     pdb_lines.append("END")
     return "\n".join(pdb_lines)
 
+# Función para mostrar visualización en Streamlit
+def show_structure(pdb_data, width=600, height=400):
+    viewer = py3Dmol.view(width=width, height=height)
+    viewer.addModel(pdb_data, "pdb")
+    viewer.setStyle({"cartoon": {"color": "spectrum"}, "stick": {}})
+    viewer.zoomTo()
+    return viewer._make_html()
+
 # Mostrar estructura si se presiona Run
 if run and sequence:
     pdb_data = generate_fake_pdb(sequence)
-    viewer = py3Dmol.view(width=600, height=400)
-    viewer.addModel(pdb_data, "pdb")
-    viewer.setStyle({"cartoon": {"color":"spectrum"}, "stick": {}})
-    viewer.zoomTo()
-    st.components.v1.html(viewer.render().data, height=500, width=700)
+    html_viewer = show_structure(pdb_data)
+    st.components.v1.html(html_viewer, height=500, width=700)
 
     # Botón para descargar PDB
     st.download_button(
@@ -69,6 +74,7 @@ if run and sequence:
 if not sequence and not run:
     st.subheader("Ejemplo: Proteína 1CRN")
     viewer = py3Dmol.view(query='pdb:1CRN', width=600, height=400)
-    viewer.setStyle({"cartoon": {"color":"spectrum"}})
+    viewer.setStyle({"cartoon": {"color": "spectrum"}})
     viewer.zoomTo()
-    st.components.v1.html(viewer.render().data, height=500, width=700)
+    html_viewer = viewer._make_html()
+    st.components.v1.html(html_viewer, height=500, width=700)
