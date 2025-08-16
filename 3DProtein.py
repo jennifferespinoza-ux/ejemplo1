@@ -52,12 +52,11 @@ def cargar_pdb(pdb_id):
     return view
 
 st.subheader("Visualizar proteína desde el RCSB PDB")
-pdb_code = st.text_input("Introduce un código PDB (ejemplo: 1CRN, 4HHB, etc.)")
+pdb_code = st.text_input("Introduce un código PDB (ejemplo: 1CRN, 4HHB, etc.)", value="1CRN")
 if st.button("Cargar PDB real"):
     if pdb_code:
         view = cargar_pdb(pdb_code)
-        view_html = view._make_html()
-        st.components.v1.html(view_html, height=500, width=600)
+        st.components.v1.html(view.render(), height=500, width=600)
     else:
         st.warning("⚠️ Ingresa un código PDB válido.")
 
@@ -82,13 +81,17 @@ if run or new_structure:
         view = py3Dmol.view(width=600, height=500)
         view.addModel(pdb_data, 'pdb')
         view.setStyle({'cartoon': {'color': 'spectrum'}})
-        view.addStyle({'atom': {'element': 'C'}}, {'stick': {}})
         view.zoomTo()
-        view_html = view._make_html()
-        st.components.v1.html(view_html, height=500, width=600)
-        
+        st.components.v1.html(view.render(), height=500, width=600)
+
         # Botones de descarga
         st.download_button("Descargar PDB", pdb_data, file_name="estructura.pdb")
         st.download_button("Descargar Secuencia TXT", seq_input, file_name="secuencia.txt")
     else:
         st.warning("⚠️ Ingresa una secuencia primero.")
+
+# Mostrar ejemplo por defecto automáticamente
+st.subheader("Ejemplo automático")
+st.write("Visualización automática del código PDB **1CRN** para comprobar la app:")
+default_view = cargar_pdb("1CRN")
+st.components.v1.html(default_view.render(), height=500, width=600)
