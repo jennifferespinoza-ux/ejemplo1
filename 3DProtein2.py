@@ -56,13 +56,12 @@ def show_structure(pdb_data, width=600, height=400):
     viewer.zoomTo()
     return viewer
 
-# Si se presiona Run y hay secuencia
-if run and sequence:
-    pdb_data = generate_fake_pdb(sequence)
+# Mostrar estructura (ejemplo inicial o secuencia)
+def render_structure(seq):
+    pdb_data = generate_fake_pdb(seq)
     viewer = show_structure(pdb_data)
-    viewer_html = viewer.js()  # Usa el HTML embebido de py3Dmol
+    viewer_html = viewer.js()
     st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
-
     st.download_button(
         label="Descargar PDB",
         data=pdb_data,
@@ -70,11 +69,11 @@ if run and sequence:
         mime="chemical/x-pdb"
     )
 
-# Ejemplo automático: estructura 1CRN
+# Si se presiona Run y hay secuencia
+if run and sequence:
+    render_structure(sequence)
+
+# Ejemplo automático siempre visible
 if not sequence and not run:
-    st.subheader("Ejemplo: Secuencia corta ACDEFGH")
-    example_seq = "ACDEFGH"
-    pdb_data = generate_fake_pdb(example_seq)
-    viewer = show_structure(pdb_data)
-    viewer_html = viewer.js()
-    st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
+    st.subheader("Ejemplo de visualización con secuencia ACDEFGH")
+    render_structure("ACDEFGH")
