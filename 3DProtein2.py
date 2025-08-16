@@ -56,14 +56,10 @@ def show_structure(pdb_data, width=600, height=400):
     viewer.zoomTo()
     return viewer
 
-# Fallback para mostrar en Streamlit Cloud
+# Función segura para renderizar en Streamlit
 def display_in_streamlit(viewer, width=600, height=400):
-    try:
-        # Intentar mostrar directamente
-        viewer.show()
-    except:
-        # Si falla (como en Streamlit Cloud), usar html embebido
-        st.components.v1.html(viewer.render().data, width=width, height=height, scrolling=False)
+    viewer_html = viewer._make_html()
+    st.components.v1.html(viewer_html, width=width, height=height, scrolling=False)
 
 # Si se presiona Run y hay secuencia
 if run and sequence:
