@@ -1,7 +1,8 @@
-# Archivo principal de la app (3DProtein.py)
+# 3DProtein.py
+
 import streamlit as st
-import py3Dmol
 import random
+import py3Dmol
 
 # Diccionario de conversión de tres letras a una letra
 amino_dict = {
@@ -13,75 +14,53 @@ amino_dict = {
 
 # Función de conversión
 def convertir_tres_a_una(seq_tres):
-    partes = seq_tres.strip().upper().split()
-    return "".join(amino_dict.get(res, "X") for res in partes)
+    secuencia = seq_tres.upper().split()
+    return ''.join([amino_dict.get(res, 'X') for res in secuencia])
 
-# Función simulada para generar estructura PDB desde secuencia
-def generar_estructura_pdb(seq: str, seed: int = None):
-    if not seed:
-        seed = random.randint(1, 10000)
-    pdb_mock = f"""
-HETATM    1  N   ALA A   1      {seed%10+10}.000  11.000   8.000  1.00 20.00           N
-HETATM    2  CA  ALA A   1      {seed%5+12}.000  12.000   8.000  1.00 20.00           C
-HETATM    3  C   ALA A   1      {seed%7+13}.000  13.000   9.000  1.00 20.00           C
-HETATM    4  O   ALA A   1      {seed%3+14}.000  14.000   9.500  1.00 20.00           O
-END
-"""
-    return pdb_mock
+# Configuración de la interfaz
+st.sidebar.title("🧬 Instrucciones")
+st.sidebar.write("1. Si tienes secuencia en 3 letras, conviértela primero.\n"
+                 "2. Ingresa la secuencia en letras simples (A, R, N, etc.).\n"
+                 "3. Haz clic en **Run** para ver la estructura.\n"
+                 "4. Usa **Nueva estructura** para generar otra visualización.")
 
-# Barra lateral con instrucciones
-st.sidebar.title("📘 Instrucciones")
-st.sidebar.write("""
-1. Puede ingresar una secuencia en formato **tres letras** (ejemplo: ALA GLY SER) y convertirla a una letra.
-2. Ingrese una **secuencia de aminoácidos** usando el alfabeto estándar (ACDEFGHIKLMNPQRSTVWY).
-3. Presione **Run** para generar una estructura 3D.
-4. Use el botón **Nueva estructura** para cambiar la semilla aleatoria y visualizar otra conformación.
-5. Mueva la estructura con el mouse: clic izquierdo (rotar), clic derecho (mover), rueda (zoom).
-""")
+st.title("Generador de estructuras 3D de proteínas")
 
-# Interfaz principal
-st.title("Generación de Estructuras de Proteínas 🧬")
+# Conversión 3 letras -> 1 letra
+st.subheader("Conversión de 3 letras a 1 letra")
+entrada_tres = st.text_area("Introduce la secuencia en formato de 3 letras (separadas por espacio)")
+if st.button("Convertir a 1 letra"):
+    resultado = convertir_tres_a_una(entrada_tres)
+    st.success(f"Secuencia convertida: {resultado}")
 
-# Conversión de tres letras a una letra
-st.subheader("Conversión de secuencia (tres letras → una letra)")
-seq_tres = st.text_area("Ingrese la secuencia en tres letras (ejemplo: ALA GLY SER):", value="")
-if st.button("Convertir a una letra"):
-    seq_convertida = convertir_tres_a_una(seq_tres)
-    st.success(f"Secuencia convertida: {seq_convertida}")
-    st.session_state["secuencia_convertida"] = seq_convertida
-
-# Secuencia de prueba cargada por defecto
-secuencia = st.text_area("Ingrese la secuencia de aminoácidos:",
-                         value=st.session_state.get("secuencia_convertida", "ACDEFGHIKLMNPQRSTVWY"),
-                         height=100)
+# Entrada de secuencia
+st.subheader("Generación de estructura 3D")
+seq_input = st.text_area("Introduce la secuencia de aminoácidos en formato de 1 letra")
 
 # Botones
 col1, col2 = st.columns(2)
+run = col1.button("Run")
+new_structure = col2.button("Nueva estructura")
 
-if "estructura" not in st.session_state:
-    st.session_state.estructura = None
-    st.session_state.seed = None
+# Función para simular una estructura PDB de ejemplo
+def generar_pdb(seq):
+    pdb = "HEADER    MOCK PROTEIN\n"
+    for i, aa in enumerate(seq, start=1):
+        x, y, z = random.uniform(-10, 10), random.uniform(-10, 10), random.uniform(-10, 10)
+        pdb += f"ATOM  {i:5d}  CA  {aa}   {i:4d}    {x:8.3f}{y:8.3f}{z:8.3f}  1.00  0.00           C\n"
+    pdb += "END\n"
+    return pdb
 
-if col1.button("Run"):
-    st.session_state.seed = random.randint(1, 10000)
-    st.session_state.estructura = generar_estructura_pdb(secuencia, st.session_state.seed)
-
-if col2.button("Nueva estructura"):
-    st.session_state.seed = random.randint(1, 10000)
-    st.session_state.estructura = generar_estructura_pdb(secuencia, st.session_state.seed)
-
-# Visualización 3D en la misma página
-if st.session_state.estructura:
-    st.subheader("Visualización 3D de la proteína")
-    viewer = py3Dmol.view(width=500, height=400)
-    viewer.addModel(st.session_state.estructura, "pdb")
-    viewer.setStyle({"cartoon": {"color": "spectrum"}})
-    viewer.zoomTo()
-    viewer.show()
-    
-    # Render en Streamlit
-    viewer_html = viewer._make_html()
-    st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
-    
-    # Opción de descarga
-    st.download_button("Descargar PDB", data=st.session_state.estructura, file_name="estructura.pdb")
+# Visualización con py3Dmol
+if run or new_structure:
+    if seq_input:
+        pdb_data = generar_pdb(seq_input)
+        view = py3Dmol.view(width=500, height=400)
+        view.addModel(pdb_data, 'pdb')
+        view.setStyle({'cartoon': {'color': 'spectrum'}})
+        view.zoomTo()
+        view_html = view._make_html()
+        st.components.v1.html(view_html, height=400)
+        st.download_button("Descargar PDB", pdb_data, file_name="estructura.pdb")
+    else:
+        st.warning("⚠️ Ingresa una secuencia primero.")
