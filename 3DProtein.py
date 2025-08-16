@@ -56,7 +56,9 @@ pdb_code = st.text_input("Introduce un código PDB (ejemplo: 1CRN, 4HHB, etc.)",
 if st.button("Cargar PDB real"):
     if pdb_code:
         view = cargar_pdb(pdb_code)
-        st.components.v1.html(view.render(), height=500, width=600)
+        html = view._make_html()
+        st.components.v1.html(html, height=500, width=600)
+        st.download_button("Descargar PDB desde RCSB", html, file_name=f"{pdb_code}.html")
     else:
         st.warning("⚠️ Ingresa un código PDB válido.")
 
@@ -82,10 +84,10 @@ if run or new_structure:
         view.addModel(pdb_data, 'pdb')
         view.setStyle({'cartoon': {'color': 'spectrum'}})
         view.zoomTo()
-        st.components.v1.html(view.render(), height=500, width=600)
+        st.components.v1.html(view._make_html(), height=500, width=600)
 
         # Botones de descarga
-        st.download_button("Descargar PDB", pdb_data, file_name="estructura.pdb")
+        st.download_button("Descargar PDB generado", pdb_data, file_name="estructura.pdb")
         st.download_button("Descargar Secuencia TXT", seq_input, file_name="secuencia.txt")
     else:
         st.warning("⚠️ Ingresa una secuencia primero.")
@@ -94,4 +96,4 @@ if run or new_structure:
 st.subheader("Ejemplo automático")
 st.write("Visualización automática del código PDB **1CRN** para comprobar la app:")
 default_view = cargar_pdb("1CRN")
-st.components.v1.html(default_view.render(), height=500, width=600)
+st.components.v1.html(default_view._make_html(), height=500, width=600)
