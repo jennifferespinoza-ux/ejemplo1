@@ -52,7 +52,7 @@ def generate_fake_pdb(seq):
 def show_structure(pdb_data, width=600, height=400):
     viewer = py3Dmol.view(width=width, height=height)
     viewer.addModel(pdb_data, "pdb")
-    viewer.setStyle({"cartoon": {"color": "spectrum"}})
+    viewer.setStyle({"stick": {"colorscheme": "cyanCarbon"}})
     viewer.zoomTo()
     return viewer
 
@@ -60,8 +60,8 @@ def show_structure(pdb_data, width=600, height=400):
 if run and sequence:
     pdb_data = generate_fake_pdb(sequence)
     viewer = show_structure(pdb_data)
-    viewer_html = viewer.render()
-    st.components.v1.html(str(viewer_html), height=500, width=700, scrolling=False)
+    viewer_html = viewer.js()  # Usa el HTML embebido de py3Dmol
+    st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
 
     st.download_button(
         label="Descargar PDB",
@@ -76,5 +76,5 @@ if not sequence and not run:
     example_seq = "ACDEFGH"
     pdb_data = generate_fake_pdb(example_seq)
     viewer = show_structure(pdb_data)
-    viewer_html = viewer.render()
-    st.components.v1.html(str(viewer_html), height=500, width=700, scrolling=False)
+    viewer_html = viewer.js()
+    st.components.v1.html(viewer_html, height=500, width=700, scrolling=False)
