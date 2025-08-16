@@ -53,7 +53,8 @@ def generar_pdb(seq):
     pdb = "HEADER    MOCK PROTEIN\n"
     for i, aa in enumerate(seq, start=1):
         x, y, z = random.uniform(-10, 10), random.uniform(-10, 10), random.uniform(-10, 10)
-        pdb += f"ATOM  {i:5d}  CA  {aa}   {i:4d}    {x:8.3f}{y:8.3f}{z:8.3f}  1.00  0.00           C\n"
+        # Usamos GLY como residuo genérico para que sea reconocido por py3Dmol
+        pdb += f"ATOM  {i:5d}  CA  GLY A{i:4d}    {x:8.3f}{y:8.3f}{z:8.3f}  1.00  0.00           C\n"
     pdb += "END\n"
     return pdb
 
@@ -63,7 +64,7 @@ if run or new_structure:
         pdb_data = generar_pdb(seq_input)
         view = py3Dmol.view(width=500, height=400)
         view.addModel(pdb_data, 'pdb')
-        view.setStyle({'cartoon': {'color': 'spectrum'}})
+        view.setStyle({'stick': {}})
         view.zoomTo()
         view_html = view._make_html()
         st.components.v1.html(view_html, height=400)
