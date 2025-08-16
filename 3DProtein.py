@@ -85,34 +85,3 @@ if st.session_state.estructura:
     
     # Opción de descarga
     st.download_button("Descargar PDB", data=st.session_state.estructura, file_name="estructura.pdb")
-
-
-# ---------------- requirements.txt ----------------
-# Crear este archivo en tu repositorio con el siguiente contenido:
-#
-# streamlit
-# py3Dmol
-# requests
-
-# ---------------- README.md ----------------
-# Crear este archivo en tu repositorio con el siguiente contenido:
-#
-# # Generación de estructuras 3D de proteínas 🧬
-#
-# Esta aplicación en **Streamlit** permite:
-# - Convertir secuencias de aminoácidos de 3 letras a 1 letra.
-# - Ingresar una secuencia y generar una estructura 3D.
-# - Visualizar y descargar la estructura PDB.
-#
-# ## Instalación
-# ```bash
-# git clone <URL-de-tu-repo>
-# cd <repo>
-# pip install -r requirements.txt
-# streamlit run 3DProtein.py
-# ```
-#
-# ## Uso en Streamlit Cloud
-# - Sube tu código y `requirements.txt` al repositorio de GitHub.
-# - Conéctalo en [Streamlit Cloud](https://share.streamlit.io).
-# - ¡Listo! 🎉
