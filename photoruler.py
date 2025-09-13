@@ -9,7 +9,8 @@ st.title("📏 Regla Virtual Rotable para medir trombosis en cola de ratón")
 uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    image = Image.open(uploaded_file).convert("RGB")  # 👈 usar PIL directamente
+    # 👇 Conversión explícita a RGBA
+    image = Image.open(uploaded_file).convert("RGBA")
 
     st.write("👉 Usa el mouse para **arrastrar, escalar o rotar la regla** sobre la cola")
 
@@ -18,7 +19,7 @@ if uploaded_file:
         fill_color="rgba(255, 165, 0, 0.3)",
         stroke_width=2,
         stroke_color="#FF0000",
-        background_image=image,  # 👈 PIL.Image sí funciona
+        background_image=image,   # 👈 ahora seguro
         update_streamlit=True,
         height=image.height,
         width=image.width,
