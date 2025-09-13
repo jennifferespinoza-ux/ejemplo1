@@ -1,2 +1,5 @@
 streamlit
-py3Dmol
+opencv-python-headless
+pillow
+numpy
+streamlit-drawable-canvas
