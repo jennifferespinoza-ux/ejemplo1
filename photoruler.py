@@ -1,76 +1,61 @@
 import streamlit as st
-import cv2
 import numpy as np
-from PIL import Image
-import io
+from PIL import Image, ImageDraw
 
-st.set_page_config(page_title="Medición de Trombosis en Cola de Ratón", layout="centered")
+st.set_page_config(page_title="Regla Virtual - Medición de Trombosis", layout="wide")
 
-st.title("📏 Medición de Trombosis en Cola de Ratón")
+st.title("📏 Medidor de Trombosis en Cola de Ratón con Regla Virtual")
 
-st.markdown("""
-Sube una **foto de la cola del ratón**, calibra la escala con la regla y mide
-la proporción de trombosis.
-""")
+# Subir imagen
+uploaded_file = st.file_uploader("Sube una foto de la cola del ratón", type=["jpg", "jpeg", "png"])
 
-# ==========================
-# 1. Subir imagen
-# ==========================
-archivo = st.file_uploader("Subir imagen", type=["jpg", "jpeg", "png", "tif", "tiff"])
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("RGB")
+    img_width, img_height = image.size
 
-if archivo is not None:
-    img_pil = Image.open(archivo).convert("RGB")
-    img_array = np.array(img_pil)
-
-    st.image(img_array, caption="Imagen cargada", use_column_width=True)
-
-    st.markdown("### ⚖️ Calibración de escala")
-    st.write("Dibuja una regla sobre la imagen para convertir píxeles a mm/cm.")
-
-    # ==========================
-    # 2. Escala manual
-    # ==========================
-    escala_pix = st.number_input("Longitud de la regla (en píxeles)", min_value=1.0, value=100.0, step=1.0)
-    escala_real = st.number_input("Longitud real de la regla (en mm)", min_value=0.1, value=10.0, step=0.1)
-
-    factor = escala_real / escala_pix  # mm por píxel
-    st.write(f"📐 Factor de conversión: **{factor:.4f} mm/píxel**")
-
-    st.markdown("### 🖊️ Medición de la cola")
-
-    # ==========================
-    # 3. Medición de longitudes
-    # ==========================
-    total_pix = st.number_input("Longitud total de la cola (en píxeles)", min_value=1.0, value=200.0, step=1.0)
-    tromb_pix = st.number_input("Longitud de la zona trombosada (en píxeles)", min_value=0.0, value=50.0, step=1.0)
-
-    # Convertir a mm
-    total_mm = total_pix * factor
-    tromb_mm = tromb_pix * factor
-
-    if total_mm > 0:
-        porcentaje = (tromb_mm / total_mm) * 100
-    else:
-        porcentaje = 0
-
-    st.markdown("### 📊 Resultados")
-    st.write(f"- Longitud total cola: **{total_mm:.2f} mm**")
-    st.write(f"- Longitud trombosada: **{tromb_mm:.2f} mm**")
-    st.write(f"- % Trombosis: **{porcentaje:.2f} %**")
-
-    # ==========================
-    # 4. Exportar resultados
-    # ==========================
-    resultados = f"""
-    Resultados de medición:
-    -----------------------
-    Longitud total cola: {total_mm:.2f} mm
-    Longitud trombosada: {tromb_mm:.2f} mm
-    % Trombosis: {porcentaje:.2f} %
-    """
-
-    st.download_button(
-        "📥 Descargar resultados",
-        data=resultados,
-        file_name="resultado_trombosis.txt"
+    # Configuración de regla virtual
+    st.sidebar.header("⚙️ Configuración de la regla")
+    orientation = st.sidebar.radio("Orientación de la regla", ["Horizontal", "Vertical"])
+    pos = st.sidebar.slider(
+        "Posición de la regla",
+        0,
+        img_height if orientation == "Horizontal" else img_width,
+        step=5,
     )
+
+    # Dibujo de regla sobre imagen
+    img_copy = image.copy()
+    draw = ImageDraw.Draw(img_copy)
+
+    if orientation == "Horizontal":
+        draw.line([(0, pos), (img_width, pos)], fill="red", width=3)
+    else:
+        draw.line([(pos, 0), (pos, img_height)], fill="red", width=3)
+
+    st.image(img_copy, caption="Imagen con regla virtual", use_container_width=True)
+
+    st.subheader("📐 Calibración")
+    st.markdown("Marca cuántos **cm o mm** corresponde una referencia real en la regla (ejemplo: una sección de 1 cm en la regla física).")
+
+    ref_px = st.number_input("Tamaño de referencia en píxeles (mide sobre la regla virtual)", value=100)
+    ref_real = st.number_input("Longitud real de esa referencia", value=10.0)
+    unit = st.selectbox("Unidad", ["cm", "mm"])
+
+    if ref_px > 0:
+        px_per_unit = ref_px / ref_real
+        st.write(f"✅ Escala calculada: **{px_per_unit:.2f} px por {unit}**")
+
+    st.subheader("📏 Medición manual")
+    st.markdown("Introduce los valores de inicio y fin (en píxeles sobre la regla)")
+
+    total_px = st.number_input("Longitud total de la cola (px)", value=0)
+    thromb_px = st.number_input("Longitud de la zona de trombosis (px)", value=0)
+
+    if total_px > 0 and thromb_px > 0 and ref_px > 0:
+        total_real = total_px / px_per_unit
+        thromb_real = thromb_px / px_per_unit
+        percent = (thromb_real / total_real) * 100 if total_real > 0 else 0
+
+        st.success(f"📐 Cola total: {total_real:.2f} {unit}")
+        st.success(f"🟣 Trombosis: {thromb_real:.2f} {unit}")
+        st.success(f"✅ Porcentaje de trombosis: {percent:.2f}%")
