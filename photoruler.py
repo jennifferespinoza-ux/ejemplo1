@@ -11,22 +11,20 @@ uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
+    image_array = np.array(image)   # 👈 convertir a numpy array
 
     st.write("👉 Usa el mouse para **arrastrar, escalar o rotar la regla** sobre la cola")
 
-    # Cargar una regla de referencia (puedes reemplazar con tu propia imagen de regla en PNG transparente)
-    rule_img = Image.new("RGBA", (300, 20), (255, 0, 0, 120))  # regla rectangular roja básica
-
     # Canvas interactivo
     canvas_result = st_canvas(
-        fill_color="rgba(255, 165, 0, 0.3)",  # color de relleno de los shapes
+        fill_color="rgba(255, 165, 0, 0.3)",
         stroke_width=2,
         stroke_color="#FF0000",
-        background_image=image,
+        background_image=image_array,  # 👈 pasar array, no PIL.Image
         update_streamlit=True,
         height=image.height,
         width=image.width,
-        drawing_mode="transform",  # permite mover/rotar/escala objetos
+        drawing_mode="transform",
         initial_drawing={
             "version": "4.4.0",
             "objects": [
@@ -34,8 +32,8 @@ if uploaded_file:
                     "type": "rect",
                     "left": 50,
                     "top": 50,
-                    "width": rule_img.width,
-                    "height": rule_img.height,
+                    "width": 300,
+                    "height": 20,
                     "fill": "rgba(0,0,255,0.3)",
                     "stroke": "blue",
                     "strokeWidth": 2,
@@ -49,12 +47,11 @@ if uploaded_file:
     st.subheader("📐 Medición")
 
     px_per_unit = st.number_input("Cuántos píxeles corresponden a 1 cm (calibración)", value=100)
-    if canvas_result.json_data is not None:
+    if canvas_result.json_data is not None and len(canvas_result.json_data["objects"]) > 0:
         try:
             obj = canvas_result.json_data["objects"][0]
-            length_px = obj["width"] if obj["width"] > obj["height"] else obj["height"]
+            length_px = max(obj["width"], obj["height"])
             length_real = length_px / px_per_unit
             st.success(f"Longitud medida: {length_real:.2f} cm (≈ {length_px:.0f} px)")
         except Exception as e:
-            st.warning("Mueve la regla y luego calcula")
-
+            st.warning(f"No se pudo calcular: {e}")
